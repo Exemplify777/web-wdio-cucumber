@@ -1,19 +1,21 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 
-import LoginScreen from '../screenobjects/LoginScreen'; 
+import DemoLoginPage from '../pageobjects/LoginPage.js';
+import { setValue, getValue } from '@wdio/shared-store-service';
+import LoginPage from '../pageobjects/LoginPage.js';
 
-Given(/^I am on the login screen$/, async () => {
-  // Add code here to navigate to the login screen if needed
+Given(/^I am on the (\w+) page$/, async (page) => {
+  await DemoLoginPage.open();
 });
 
-When(/^I tap on the Login container button$/, async () => {
-  await LoginScreen.tapOnLoginContainerButton();
+When(/^I login to the application with (\w+)$/, async (userType: string) => {
+  console.log('userdata: ' + (await UserDataService.getUserByType(userType)).userName);
+  const loggedInUser: Users = await UserDataService.getUserByType(userType);
+  await setValue(ContextKeys.LOGGED_IN_USER, loggedInUser);
+  await DemoLoginPage.login(loggedInUser.userName, loggedInUser.userPassword);
 });
 
-When(/^I enter the username "([^"]*)" and password "([^"]*)"$/, async (username: string, password: string) => {
-  await LoginScreen.submitLoginForm(username, password);
-});
-
-Then(/^I should be logged in$/, async () => {
-  // Add assertion or verification code here to confirm successful login
+Then(/^I should see a flash message saying (.*)$/, async (message: string) => {
+  await expect(LoginPage.warningText).toBeExisting();
+  await expect(LoginPage.warningText).toHaveTextContaining(message);
 });

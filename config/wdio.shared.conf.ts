@@ -1,3 +1,36 @@
+import type { Options } from '@wdio/types';
+import Arguments from './tests/utils/arguments.utils.ts';
+import { setValue, getValue } from '@wdio/shared-store-service';
+
+import fsPkg from 'fs-extra';
+const { removeSync } = fsPkg;
+import pkg from 'multiple-cucumber-html-reporter';
+const { generate } = pkg;
+import cucumberJson from 'wdio-cucumberjs-json-reporter';
+
+// Logic to find the runtime argument browser name
+const firefox = process.argv.includes('--firefox') ? 'FIREFOX' : '';
+const edge = process.argv.includes('--edge') ? 'EDGE' : '';
+const crossbrowser = process.argv.includes('--crossbrowser') ? 'CROSSBROWSER' : '';
+const serviceType = firefox || edge || crossbrowser || 'CHROME';
+console.log('Service type: ' + serviceType);
+const dynamicConfig = await import(`./config/wdio.${serviceType}.app.conf.ts`);
+//console.log('dynamicConfig: ' + JSON.stringify(dynamicConfig));
+
+// Logic to choose the baseurl based on environment
+let baseUrl: string;
+let lastSession: string = '';
+let environment: any = await Arguments.getArgumentValue('Env');
+await setValue(ContextKeys.ENVIRONMENT, environment);
+const urls = {
+    dev: 'https://the-internet.herokuapp.com/',
+    test: 'https://the-internet.herokuapp.com/'
+};
+baseUrl = urls[environment];
+
+// //Actual config file
+// export const config: Options.Testrunner = Object.assign(
+//   {},
 /**
  * All not needed configurations, for this boilerplate, are removed.
  * If you want to know which configuration options you have then you can
@@ -24,8 +57,9 @@ export const config: WebdriverIO.Config = {
     // Specify Test Files
     // ==================
     // The test-files are specified in:
-    // - wdio.android.app.conf.ts
-    // - wdio.ios.app.conf.ts
+    // - wdio.chrome.app.conf.ts
+    // - wdio.firefox.app.conf.ts
+    // - wdio.edge.app.conf.ts
     //
     /**
      * NOTE: This is just a place holder and will be overwritten by each specific configuration
@@ -33,18 +67,55 @@ export const config: WebdriverIO.Config = {
     specs: [
         './tests/features/**/*.feature'
     ],
+    // Patterns to exclude.
+    exclude: [
+        // 'path/to/excluded/files'
+    ],
     //
     // ============
     // Capabilities
     // ============
     // The capabilities are specified in:
-    // - wdio.android.app.conf.ts
-    // - wdio.ios.app.conf.ts
+    // - wdio.chrome.app.conf.ts
+    // - wdio.firefox.app.conf.ts
+    // - wdio.edge.app.conf.ts
     //
     /**
      * NOTE: This is just a place holder and will be overwritten by each specific configuration
      */
-    capabilities: [],
+    // Define your capabilities here. WebdriverIO can run multiple capabilities at the same
+    // time. Depending on the number of capabilities, WebdriverIO launches several test
+    // sessions. Within your capabilities you can overwrite the spec and exclude options in
+    // order to group specific specs to a specific capability.
+    //
+    // First, you can define how many instances should be started at the same time. Let's
+    // say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have
+    // set maxInstances to 1; wdio will spawn 3 processes. Therefore, if you have 10 spec
+    // files and you set maxInstances to 10, all spec files will get tested at the same time
+    // and 30 processes will get spawned. The property handles how many capabilities
+    // from the same test should run tests.
+    //
+    maxInstances: 10,
+    //
+    // If you have trouble getting all important capabilities together, check out the
+    // Sauce Labs platform configurator - a great tool to configure your capabilities:
+    // https://saucelabs.com/platform/platform-configurator
+    //
+    capabilities: [
+        {
+            // maxInstances can get overwritten per capability. So if you have an in-house Selenium
+            // grid with only 5 firefox instances available you can make sure that not more than
+            // 5 instances get started at a time.
+            maxInstances: 1,
+            //
+            browserName: 'chrome',
+            acceptInsecureCerts: true
+            // If outputDir is provided WebdriverIO can capture driver session logs
+            // it is possible to configure which logTypes to include/exclude.
+            // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
+            // excludeDriverLogs: ['bugreport', 'server'],
+        }
+    ],
     //
     // ===================
     // Test Configurations
@@ -73,7 +144,7 @@ export const config: WebdriverIO.Config = {
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
-    // baseUrl: "http://sample.website.com",
+    baseUrl: baseUrl,
     // Default timeout for all waitFor* commands.
     /**
      * NOTE: This has been increased for more stable Appium Native app
@@ -94,7 +165,7 @@ export const config: WebdriverIO.Config = {
     // - wdio.shared.local.appium.conf.ts
     // - wdio.shared.sauce.conf.ts
     // configuration files
-    services: [],
+    services: ['chromedriver', 'shared-store'],
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: https://webdriver.io/docs/frameworks
@@ -114,10 +185,17 @@ export const config: WebdriverIO.Config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-     // Test reporter for stdout.
+    // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec',['allure', {outputDir: 'reports/allure-results'}],'video','cucumberjs-json','html-nice'],
+    reporters: [[
+        'cucumberjs-json',
+        {
+            jsonFolder: `${process.cwd()}/report`,
+            language: 'en',
+            reportFilePerRetry: 'true'
+        }
+    ]],
 
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
@@ -145,7 +223,7 @@ export const config: WebdriverIO.Config = {
         // <boolean> Enable this config to treat undefined definitions as warnings.
         ignoreUndefinedDefinitions: false
     },
-    
+
     //
     // =====
     // Hooks
@@ -155,13 +233,14 @@ export const config: WebdriverIO.Config = {
     // methods to it. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
     //
-  /**
-     * Gets executed once before all workers get launched.
-     * @param {object} config wdio configuration object
-     * @param {Array.<Object>} capabilities list of capabilities details
-     */
-    // onPrepare: function (config, capabilities) {
-    // },
+    /**
+       * Gets executed once before all workers get launched.
+       * @param {object} config wdio configuration object
+       * @param {Array.<Object>} capabilities list of capabilities details
+       */
+    onPrepare: function (config, capabilities) {
+        rimraf('./reports/cucumberjs-json');
+    },
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
@@ -223,8 +302,14 @@ export const config: WebdriverIO.Config = {
      * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
      * @param {object}                 context  Cucumber World object
      */
-    // beforeScenario: function (world, context) {
-    // },
+    beforeScenario: async function (world, context) {
+        // the below if statement is cleaning the browser session only when it's the same as previous scenario's session
+        // this is needed so we are spawning a new session for each scenario
+        // and not reloading session when it's not needed(when session is new already during the first test run)
+        if (browser.sessionId == lastSession) {
+            await browser.reloadSession();
+        }
+    },
     /**
      *
      * Runs before a Cucumber Step.
@@ -245,8 +330,11 @@ export const config: WebdriverIO.Config = {
      * @param {number}             result.duration  duration of scenario in milliseconds
      * @param {object}             context          Cucumber World object
      */
-    // afterStep: function (step, scenario, result, context) {
-    // },
+    afterStep: async function (step, scenario, result, context) {
+        if (!result.passed) {
+            await cucumberJson.attach(await browser.takeScreenshot(), 'image/png');
+        }
+    },
     /**
      *
      * Runs after a Cucumber Scenario.
@@ -257,8 +345,10 @@ export const config: WebdriverIO.Config = {
      * @param {number}                 result.duration  duration of scenario in milliseconds
      * @param {object}                 context          Cucumber World object
      */
-    // afterScenario: function (world, result, context) {
-    // },
+    afterScenario: async function (world, result, context) {
+        console.log('scenario status: ' + world.result.status);
+        await browser.reloadSession();
+    },
     /**
      *
      * Runs after a Cucumber Feature.
@@ -267,7 +357,7 @@ export const config: WebdriverIO.Config = {
      */
     // afterFeature: function (uri, feature) {
     // },
-    
+
     /**
      * Runs after a WebdriverIO command gets executed
      * @param {string} commandName hook command name
@@ -302,8 +392,30 @@ export const config: WebdriverIO.Config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
-    // onComplete: function(exitCode, config, capabilities, results) {
-    // },
+    onComplete: function (exitCode, config, capabilities, results) {
+        let date = new Date();
+        
+        report.generate({
+            jsonDir: './reports/cucumberjs-json',
+            reportPath: './reports/cucumberjs-json/cucumberjs-html-report.html',
+            displayDuration: true,
+            displayReportTime: true,
+            openReportInBrowser: true,
+            disableLog: true,
+            saveCollectedJSON: true,
+            reportName: 'Web Tests Report',
+            customData: {
+                title: 'Web Tests Report',
+                data: [
+                    { label: 'Project', value: 'WDIO Demo Project' },
+                    { label: 'Environment', value: environment },
+                    { label: 'BaseURL', value: baseUrl },
+                    { label: 'Platform', value: process.platform },
+                    { label: 'Date', value: date.toLocaleDateString() }
+                ]
+            }
+        });        
+    },
     /**
     * Gets executed when a refresh happens.
     * @param {string} oldSessionId session ID of the old session
