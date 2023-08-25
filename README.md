@@ -73,7 +73,7 @@ This project provides a boilerplate setup for running automated tests on native 
 └── README.md                     # Project documentation
 ```
 
-- `config/`: This directory contains the Android and iOs configurations and shared configuration file (`wdio.shared.conf.ts`) where you can update the desired capabilities and other shared configurations.
+- `config/`: This directory contains the Chrome, Firefox, Edge browsers configurations and shared configuration file (`wdio.shared.conf.ts`) where you can update the desired capabilities and other shared configurations.
 - `docs/`: This directory contains additional project documentation.
 - `reports/`: This directory contains the generated reports for test execution results.
 - `tests/`: This directory contains the main test-related files.

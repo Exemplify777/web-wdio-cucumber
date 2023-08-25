@@ -1,10 +1,9 @@
 import type { Options } from '@wdio/types';
-import Arguments from './tests/utils/arguments.utils.ts';
 import { setValue, getValue } from '@wdio/shared-store-service';
 
 import fsPkg from 'fs-extra';
 const { removeSync } = fsPkg;
-import pkg from 'multiple-cucumber-html-reporter';
+import pkg from '@multiple-cucumber-html-reporter';
 const { generate } = pkg;
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 
