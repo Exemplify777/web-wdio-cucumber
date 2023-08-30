@@ -1,0 +1,65 @@
+{
+  "app": 0,
+  "customMetadata": false,
+  "customData": {
+    "title": "Web Tests Report",
+    "data": [
+      {
+        "label": "Project",
+        "value": "WDIO Demo Project"
+      },
+      {
+        "label": "Environment",
+        "value": "dev"
+      },
+      {
+        "label": "BaseURL",
+        "value": "https://the-internet.herokuapp.com/"
+      },
+      {
+        "label": "Platform",
+        "value": "linux"
+      },
+      {
+        "label": "Date",
+        "value": "8/30/2023"
+      }
+    ]
+  },
+  "style": "style.css",
+  "useCDN": false,
+  "hideMetadata": false,
+  "displayReportTime": true,
+  "displayDuration": true,
+  "browser": 0,
+  "name": "",
+  "version": "version",
+  "time": "2023-08-30T00:58:31.671Z",
+  "features": [],
+  "featureCount": {
+    "ambiguous": 0,
+    "failed": 0,
+    "passed": 0,
+    "notDefined": 0,
+    "pending": 0,
+    "skipped": 0,
+    "total": 0,
+    "ambiguousPercentage": "NaN",
+    "failedPercentage": "NaN",
+    "notDefinedPercentage": "NaN",
+    "pendingPercentage": "NaN",
+    "skippedPercentage": "NaN",
+    "passedPercentage": "NaN"
+  },
+  "reportName": "Web Tests Report",
+  "scenarios": {
+    "failed": 0,
+    "ambiguous": 0,
+    "notDefined": 0,
+    "pending": 0,
+    "skipped": 0,
+    "passed": 0,
+    "total": 0
+  },
+  "totalTime": 0
+}

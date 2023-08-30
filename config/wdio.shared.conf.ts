@@ -1,41 +1,38 @@
 import type { Options } from '@wdio/types';
 import { setValue, getValue } from '@wdio/shared-store-service';
+import { rimraf } from 'rimraf';
+import * as path from 'path';
 
-import fsPkg from 'fs-extra';
-const { removeSync } = fsPkg;
-import pkg from '@multiple-cucumber-html-reporter';
-const { generate } = pkg;
+const report = require('multiple-cucumber-html-reporter'); // this will add the reporter to your config
+
+// import fsPkg from 'fs-extra';
+// const { removeSync } = fsPkg;
+// import pkg from '@multiple-cucumber-html-reporter';
+// const { generate } = pkg;
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 
 // Logic to find the runtime argument browser name
-const firefox = process.argv.includes('--firefox') ? 'FIREFOX' : '';
-const edge = process.argv.includes('--edge') ? 'EDGE' : '';
-const crossbrowser = process.argv.includes('--crossbrowser') ? 'CROSSBROWSER' : '';
-const serviceType = firefox || edge || crossbrowser || 'CHROME';
-console.log('Service type: ' + serviceType);
-const dynamicConfig = await import(`./config/wdio.${serviceType}.app.conf.ts`);
-//console.log('dynamicConfig: ' + JSON.stringify(dynamicConfig));
+// const firefox = process.argv.includes('--firefox') ? 'FIREFOX' : '';
+// const edge = process.argv.includes('--edge') ? 'EDGE' : '';
+// const crossbrowser = process.argv.includes('--crossbrowser') ? 'CROSSBROWSER' : '';
+// const serviceType = firefox || edge || crossbrowser || 'CHROME';
+// console.log('Service type: ' + serviceType);
+// const dynamicConfig = await import(`./config/wdio.${serviceType}.app.conf.ts`);
+// //console.log('dynamicConfig: ' + JSON.stringify(dynamicConfig));
 
-// Logic to choose the baseurl based on environment
+// // Logic to choose the baseurl based on environment
 let baseUrl: string;
 let lastSession: string = '';
-let environment: any = await Arguments.getArgumentValue('Env');
-await setValue(ContextKeys.ENVIRONMENT, environment);
+// let environment: any = await Arguments.getArgumentValue('Env');
+// await setValue(ContextKeys.ENVIRONMENT, environment);
 const urls = {
     dev: 'https://the-internet.herokuapp.com/',
     test: 'https://the-internet.herokuapp.com/'
 };
-baseUrl = urls[environment];
+baseUrl = urls['dev'];
 
-// //Actual config file
-// export const config: Options.Testrunner = Object.assign(
-//   {},
-/**
- * All not needed configurations, for this boilerplate, are removed.
- * If you want to know which configuration options you have then you can
- * check https://webdriver.io/docs/configurationfile
- */
 export const config: WebdriverIO.Config = {
+    // export const config: Options.Testrunner  = {
     //
     // ====================
     // Runner Configuration
@@ -64,7 +61,7 @@ export const config: WebdriverIO.Config = {
      * NOTE: This is just a place holder and will be overwritten by each specific configuration
      */
     specs: [
-        './tests/features/**/*.feature'
+        '../tests/features/**/*.feature'
     ],
     // Patterns to exclude.
     exclude: [
@@ -78,6 +75,8 @@ export const config: WebdriverIO.Config = {
     // - wdio.chrome.app.conf.ts
     // - wdio.firefox.app.conf.ts
     // - wdio.edge.app.conf.ts
+    capabilities: [
+    ],
     //
     /**
      * NOTE: This is just a place holder and will be overwritten by each specific configuration
@@ -94,27 +93,27 @@ export const config: WebdriverIO.Config = {
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     //
-    maxInstances: 10,
+    maxInstances: 1,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [
-        {
-            // maxInstances can get overwritten per capability. So if you have an in-house Selenium
-            // grid with only 5 firefox instances available you can make sure that not more than
-            // 5 instances get started at a time.
-            maxInstances: 1,
-            //
-            browserName: 'chrome',
-            acceptInsecureCerts: true
-            // If outputDir is provided WebdriverIO can capture driver session logs
-            // it is possible to configure which logTypes to include/exclude.
-            // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
-            // excludeDriverLogs: ['bugreport', 'server'],
-        }
-    ],
+    // capabilities: [
+    //     {
+    //         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
+    //         // grid with only 5 firefox instances available you can make sure that not more than
+    //         // 5 instances get started at a time.
+    //         maxInstances: 1,
+    //         //
+    //         browserName: 'chrome',
+    //         acceptInsecureCerts: true
+    //         // If outputDir is provided WebdriverIO can capture driver session logs
+    //         // it is possible to configure which logTypes to include/exclude.
+    //         // excludeDriverLogs: ['*'], // pass '*' to exclude all driver session logs
+    //         // excludeDriverLogs: ['bugreport', 'server'],
+    //     }
+    // ],
     //
     // ===================
     // Test Configurations
@@ -200,7 +199,7 @@ export const config: WebdriverIO.Config = {
     // If you are using Cucumber you need to specify the location of your step definitions.
     cucumberOpts: {
         // <string[]> (file/dir) require files before executing features
-        require: ['./tests/src/step-definitions/steps.ts'],
+        require: ['./tests/src/step-definitions/*Steps.ts'],
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
@@ -396,18 +395,18 @@ export const config: WebdriverIO.Config = {
         
         report.generate({
             jsonDir: './reports/cucumberjs-json',
-            reportPath: './reports/cucumberjs-json/cucumberjs-html-report.html',
+            reportPath: './reports/cucumberjs-json',
             displayDuration: true,
             displayReportTime: true,
             openReportInBrowser: true,
-            disableLog: true,
+            disableLog: false,
             saveCollectedJSON: true,
             reportName: 'Web Tests Report',
             customData: {
                 title: 'Web Tests Report',
                 data: [
                     { label: 'Project', value: 'WDIO Demo Project' },
-                    { label: 'Environment', value: environment },
+                    { label: 'Environment', value: 'dev' },
                     { label: 'BaseURL', value: baseUrl },
                     { label: 'Platform', value: process.platform },
                     { label: 'Date', value: date.toLocaleDateString() }

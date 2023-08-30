@@ -57,13 +57,13 @@ export default class Page {
         return isDisplayed;
     };
 
-    public async getAttributeValue(element, attributeName) {
+    public async getAttributeValue(element: WebdriverIO.Element, attributeName: string) {
         await element.waitForDisplayed({ timeout: 60000 });
         const value = await element.getAttribute(attributeName);
         return value;
     }
 
-    public async verifyPageURL(URL) {
+    public async verifyPageURL(URL: string) {
         await browser.waitUntil(async () => (await browser.getUrl()).includes(URL), {
             timeout: 20000,
             timeoutMsg: 'Loaded page [' + (await browser.getUrl()) + "] doesn't match the intended page [" + URL + ']',
@@ -71,7 +71,7 @@ export default class Page {
         });
     }
 
-    public async verifyPageTitle(title) {
+    public async verifyPageTitle(title: string) {
         await browser.pause(3000);
         let bool = false;
         let pageTitle = await browser.getTitle();
