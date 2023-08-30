@@ -1,35 +1,19 @@
 import type { Options } from '@wdio/types';
 import { setValue, getValue } from '@wdio/shared-store-service';
-import { rimraf } from 'rimraf';
+import {rimraf} from 'rimraf';
 import * as path from 'path';
 
-const report = require('multiple-cucumber-html-reporter'); // this will add the reporter to your config
-
-// import fsPkg from 'fs-extra';
-// const { removeSync } = fsPkg;
-// import pkg from '@multiple-cucumber-html-reporter';
-// const { generate } = pkg;
+import report = require('multiple-cucumber-html-reporter');
 import cucumberJson from 'wdio-cucumberjs-json-reporter';
 
-// Logic to find the runtime argument browser name
-// const firefox = process.argv.includes('--firefox') ? 'FIREFOX' : '';
-// const edge = process.argv.includes('--edge') ? 'EDGE' : '';
-// const crossbrowser = process.argv.includes('--crossbrowser') ? 'CROSSBROWSER' : '';
-// const serviceType = firefox || edge || crossbrowser || 'CHROME';
-// console.log('Service type: ' + serviceType);
-// const dynamicConfig = await import(`./config/wdio.${serviceType}.app.conf.ts`);
-// //console.log('dynamicConfig: ' + JSON.stringify(dynamicConfig));
 
-// // Logic to choose the baseurl based on environment
-let baseUrl: string;
+let bUrl: string;
 let lastSession: string = '';
-// let environment: any = await Arguments.getArgumentValue('Env');
-// await setValue(ContextKeys.ENVIRONMENT, environment);
 const urls = {
     dev: 'https://the-internet.herokuapp.com/',
     test: 'https://the-internet.herokuapp.com/'
 };
-baseUrl = urls['dev'];
+bUrl = urls['dev'];
 
 export const config: WebdriverIO.Config = {
     // export const config: Options.Testrunner  = {
@@ -142,7 +126,7 @@ export const config: WebdriverIO.Config = {
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
-    baseUrl: baseUrl,
+    baseUrl: bUrl,
     // Default timeout for all waitFor* commands.
     /**
      * NOTE: This has been increased for more stable Appium Native app
@@ -189,7 +173,7 @@ export const config: WebdriverIO.Config = {
     reporters: [[
         'cucumberjs-json',
         {
-            jsonFolder: `${process.cwd()}/report`,
+            jsonFolder: './reports/cucumberjs-json',
             language: 'en',
             reportFilePerRetry: 'true'
         }
@@ -219,9 +203,15 @@ export const config: WebdriverIO.Config = {
         // <number> timeout for step definitions
         timeout: 60000,
         // <boolean> Enable this config to treat undefined definitions as warnings.
-        ignoreUndefinedDefinitions: false
-    },
+        ignoreUndefinedDefinitions: false,
 
+        //formatters options 
+        formatOptions: {
+            message: true,
+            'usage-json': true,
+            summary: true
+        },
+    },
     //
     // =====
     // Hooks
@@ -236,8 +226,8 @@ export const config: WebdriverIO.Config = {
        * @param {object} config wdio configuration object
        * @param {Array.<Object>} capabilities list of capabilities details
        */
-    onPrepare: function (config, capabilities) {
-        rimraf('./reports/cucumberjs-json');
+    onPrepare: function (config: Object, capabilities: Array.<Object>): void {
+        rimraf.sync('./reports/cucumberjs-json');
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
@@ -330,6 +320,7 @@ export const config: WebdriverIO.Config = {
      */
     afterStep: async function (step, scenario, result, context) {
         if (!result.passed) {
+            console.log("Taking screenshot.");
             await cucumberJson.attach(await browser.takeScreenshot(), 'image/png');
         }
     },
@@ -343,10 +334,10 @@ export const config: WebdriverIO.Config = {
      * @param {number}                 result.duration  duration of scenario in milliseconds
      * @param {object}                 context          Cucumber World object
      */
-    afterScenario: async function (world, result, context) {
-        console.log('scenario status: ' + world.result.status);
-        await browser.reloadSession();
-    },
+    // afterScenario: async function (world, result, context) {
+    // console.log('scenario status: ' + world.result.status);
+    // await browser.reloadSession();
+    // },
     /**
      *
      * Runs after a Cucumber Feature.
@@ -392,7 +383,7 @@ export const config: WebdriverIO.Config = {
      */
     onComplete: function (exitCode, config, capabilities, results) {
         let date = new Date();
-        
+
         report.generate({
             jsonDir: './reports/cucumberjs-json',
             reportPath: './reports/cucumberjs-json',
@@ -407,12 +398,12 @@ export const config: WebdriverIO.Config = {
                 data: [
                     { label: 'Project', value: 'WDIO Demo Project' },
                     { label: 'Environment', value: 'dev' },
-                    { label: 'BaseURL', value: baseUrl },
+                    { label: 'BaseURL', value: bUrl },
                     { label: 'Platform', value: process.platform },
                     { label: 'Date', value: date.toLocaleDateString() }
                 ]
             }
-        });        
+        });
     },
     /**
     * Gets executed when a refresh happens.
