@@ -1,4 +1,3 @@
-import { config } from '../../../config/wdio.shared.conf';
 import { ChainablePromiseElement } from 'webdriverio';
 
 export default class Page {
@@ -33,7 +32,7 @@ export default class Page {
     public clickElement = async (element: ChainablePromiseElement<WebdriverIO.Element>) => {
         await element.waitForDisplayed({ timeout: 60000 });
         await element.scrollIntoView();
-        const text = (await element).click();
+        (await element).click();
     };
 
     public isDisplayed = async (element: ChainablePromiseElement<WebdriverIO.Element>) => {
@@ -71,6 +70,7 @@ export default class Page {
         });
     }
 
+    /*eslint wdio/no-pause: "warn"*/
     public async verifyPageTitle(title: string) {
         await browser.pause(3000);
         let bool = false;
@@ -79,6 +79,7 @@ export default class Page {
         return bool;
     }
 
+    /*eslint wdio/no-pause: "warn"*/
     public async waitForPageLoad() {
         await browser.pause(2000); // This sleep is to wait for actual page load to start & then check for page load completed or not
         await browser.waitUntil(async () => browser.execute(() => document.readyState === 'complete'), {

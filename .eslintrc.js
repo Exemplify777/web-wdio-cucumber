@@ -1,7 +1,15 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint', 'wdio'],
+    parserOptions: {
+        project: "./tsconfig.json",
+      },
+    plugins: [
+        '@typescript-eslint', 
+        "import",
+        "cucumber",
+        "wdio"
+    ],
     extends: [
         'eslint:recommended',
         'plugin:wdio/recommended',
@@ -9,7 +17,6 @@ module.exports = {
     env: {
         node: true,
         es6: true,
-        jasmine: true,
     },
     globals: {
         browser: true,
@@ -21,7 +28,6 @@ module.exports = {
     },
     rules: {
         semi: ['error', 'always'],
-        indent: [2, 4],
 
         'no-multiple-empty-lines': [ 2, { 'max': 1, 'maxEOF': 1 } ],
         'array-bracket-spacing': [ 'error', 'never' ],

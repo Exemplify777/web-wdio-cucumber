@@ -128,10 +128,6 @@ export const config: WebdriverIO.Config = {
     // gets prepended directly.
     baseUrl: bUrl,
     // Default timeout for all waitFor* commands.
-    /**
-     * NOTE: This has been increased for more stable Appium Native app
-     * tests because they can take a bit longer.
-     */
     waitforTimeout: 45000,
     // Default timeout in milliseconds for request
     // if browser driver or grid doesn't send response
@@ -144,8 +140,6 @@ export const config: WebdriverIO.Config = {
     // commands. Instead, they hook themselves up into the test process.
     //
     // Services are empty here but will be defined in the
-    // - wdio.shared.local.appium.conf.ts
-    // - wdio.shared.sauce.conf.ts
     // configuration files
     services: ['chromedriver', 'shared-store'],
     // Framework you want to run your specs with.

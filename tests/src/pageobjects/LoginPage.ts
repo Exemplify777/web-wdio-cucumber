@@ -1,13 +1,12 @@
+import { $ } from '@wdio/globals';
 import Page from './Page';
-import { driver, $, $$, expect } from '@wdio/globals'
-import { ChainablePromiseElement } from 'webdriverio';
 
 const SELECTORS = {
   LOGIN_PAGE: '#username',
   LOGIN_BUTTON: 'button[type="submit"]',
   USERNAME_INPUT: '#username',
   PASSWORD_INPUT: '#password',
-  WARNING_TEXT: '#flash'
+  WARNING_TEXT: '#flash',
 };
 
 class LoginPage extends Page {
@@ -58,6 +57,5 @@ class LoginPage extends Page {
     return super.open('login');
   }
 }
-
 
 export default new LoginPage();
